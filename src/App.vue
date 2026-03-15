@@ -228,13 +228,15 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
 
 <template>
   <main class="w-full h-screen overflow-hidden" :class="isDarkMode ? 'dark' : ''">
-    <!-- 完全透明的背景，让桌面透出来 -->
-    <!-- 深色/浅色模式只影响UI组件的颜色，不改变背景 -->
+    <!-- 毛玻璃背景容器 -->
+    <div class="fixed inset-0 -z-10"
+      :class="isDarkMode ? 'bg-slate-900/80' : 'bg-white/80'"
+    ></div>
 
     <div class="w-full h-full overflow-y-auto px-4 pb-4 pt-8">
       <!-- Custom Title Bar -->
       <div
-        class="fixed top-0 left-0 right-0 h-8 backdrop-blur-xl bg-white/30 dark:bg-black/30 flex items-center justify-between px-4 z-[9999] select-none border-b border-white/10 dark:border-white/10"
+        class="fixed top-0 left-0 right-0 h-8 backdrop-blur-xl bg-white/80 dark:bg-black/60 flex items-center justify-between px-4 z-[9999] select-none border-b border-white/20 dark:border-white/10"
         :class="{ 'pointer-events-auto': isIgnoringCursorEvents }"
         :style="isIgnoringCursorEvents ? 'pointer-events: auto;' : ''"
       >
@@ -292,12 +294,12 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
         </div>
 
         <!-- Add Task Card - Glassmorphism -->
-        <form @submit.prevent="addTask" class="mb-6 backdrop-blur-2xl bg-white/40 dark:bg-black/40 rounded-2xl p-5 border border-white/20 dark:border-white/10 shadow-2xl">
+        <form @submit.prevent="addTask" class="mb-6 backdrop-blur-2xl bg-white/80 dark:bg-black/60 rounded-2xl p-5 border border-white/30 dark:border-white/20 shadow-2xl">
           <div class="mb-4">
             <input
               v-model="newTaskTitle"
               placeholder="添加新任务..."
-              class="w-full px-4 py-3 bg-white/50 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white placeholder-slate-500 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200"
+              class="w-full px-4 py-3 bg-white/60 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white placeholder-slate-500 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200"
               required
             />
           </div>
@@ -306,7 +308,7 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
               v-model="newTask描述"
               placeholder="添加描述（可选）..."
               rows="2"
-              class="w-full px-4 py-3 bg-white/50 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white placeholder-slate-500 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200 resize-none"
+              class="w-full px-4 py-3 bg-white/60 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white placeholder-slate-500 dark:placeholder-white/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200 resize-none"
             ></textarea>
           </div>
           <div class="flex gap-3 mb-4">
@@ -314,12 +316,12 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
               <input
                 type="datetime-local"
                 v-model="newTask截止日期"
-                class="w-full px-4 py-3 bg-white/50 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200"
+                class="w-full px-4 py-3 bg-white/60 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200"
               />
             </div>
             <select
               v-model.number="newTask优先级"
-              class="px-4 py-3 bg-white/50 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200"
+              class="px-4 py-3 bg-white/60 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200"
             >
               <option :value="0">紧急且重要</option>
               <option :value="1">重要</option>
@@ -337,31 +339,31 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
 
         <!-- Stats Grid - Glassmorphism -->
         <div class="grid grid-cols-4 gap-3 mb-6">
-          <div class="backdrop-blur-2xl bg-white/30 dark:bg-white/10 rounded-2xl p-4 text-center border border-white/20 dark:border-white/10 shadow-lg">
+          <div class="backdrop-blur-2xl bg-white/80 dark:bg-black/60 rounded-2xl p-4 text-center border border-white/30 dark:border-white/20 shadow-lg">
             <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ taskStats.total }}</div>
             <div class="text-xs text-slate-700 dark:text-white/70">全部</div>
           </div>
-          <div class="backdrop-blur-2xl bg-white/30 dark:bg-white/10 rounded-2xl p-4 text-center border border-white/20 dark:border-white/10 shadow-lg">
+          <div class="backdrop-blur-2xl bg-white/80 dark:bg-black/60 rounded-2xl p-4 text-center border border-white/30 dark:border-white/20 shadow-lg">
             <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ taskStats.completed }}</div>
             <div class="text-xs text-slate-700 dark:text-white/70">已完成</div>
           </div>
-          <div class="backdrop-blur-2xl bg-white/30 dark:bg-white/10 rounded-2xl p-4 text-center border border-white/20 dark:border-white/10 shadow-lg">
+          <div class="backdrop-blur-2xl bg-white/80 dark:bg-black/60 rounded-2xl p-4 text-center border border-white/30 dark:border-white/20 shadow-lg">
             <div class="text-2xl font-bold text-amber-500 dark:text-amber-400">{{ taskStats.pending }}</div>
             <div class="text-xs text-slate-700 dark:text-white/70">待处理</div>
           </div>
-          <div class="backdrop-blur-2xl bg-white/30 dark:bg-white/10 rounded-2xl p-4 text-center border border-white/20 dark:border-white/10 shadow-lg">
+          <div class="backdrop-blur-2xl bg-white/80 dark:bg-black/60 rounded-2xl p-4 text-center border border-white/30 dark:border-white/20 shadow-lg">
             <div class="text-2xl font-bold text-red-500 dark:text-red-400">{{ taskStats.overdue }}</div>
             <div class="text-xs text-slate-700 dark:text-white/70">逾期</div>
           </div>
         </div>
 
         <!-- Date Filter - Glassmorphism -->
-        <div class="mb-6 backdrop-blur-2xl bg-white/30 dark:bg-white/10 rounded-xl p-4 border border-white/20 dark:border-white/10 shadow-lg">
+        <div class="mb-6 backdrop-blur-2xl bg-white/80 dark:bg-black/60 rounded-xl p-4 border border-white/30 dark:border-white/20 shadow-lg">
           <label class="block text-sm text-slate-700 dark:text-white/70 mb-2">筛选日期</label>
           <input
             type="date"
             v-model="selectedDate"
-            class="w-full px-4 py-2.5 bg-white/50 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200"
+            class="w-full px-4 py-2.5 bg-white/60 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all duration-200"
           />
         </div>
 
@@ -395,7 +397,7 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
         <!-- Task List -->
         <div v-if="state.loading" class="text-center py-12 text-slate-700 dark:text-white/80">加载中...</div>
         <div v-else-if="displayedTasks.length === 0" class="text-center py-12">
-          <div class="w-20 h-20 mx-auto mb-4 backdrop-blur-xl bg-white/20 dark:bg-white/10 rounded-full flex items-center justify-center border border-white/20 dark:border-white/10">
+          <div class="w-20 h-20 mx-auto mb-4 backdrop-blur-xl bg-white/60 dark:bg-black/40 rounded-full flex items-center justify-center border border-white/20 dark:border-white/10">
             <svg class="w-10 h-10 text-slate-600 dark:text-white/60" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
             </svg>
@@ -406,7 +408,7 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
           <div
             v-for="task in displayedTasks"
             :key="task.id"
-            class="group backdrop-blur-2xl bg-white/30 dark:bg-white/10 rounded-2xl p-4 border border-white/20 dark:border-white/10 hover:border-blue-400/50 dark:hover:border-blue-400/30 hover:bg-white/50 dark:hover:bg-white/20 transition-all duration-200 shadow-lg"
+            class="group backdrop-blur-2xl bg-white/80 dark:bg-black/60 rounded-2xl p-4 border border-white/30 dark:border-white/20 hover:border-blue-400/50 dark:hover:border-blue-400/30 hover:bg-white/90 dark:hover:bg-black/70 transition-all duration-200 shadow-lg"
             :class="{ 'opacity-50': task.status === 'completed' }"
           >
             <div class="flex items-start gap-3">
@@ -497,13 +499,13 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
 
       <!-- Edit Modal - Glassmorphism -->
       <div v-if="isEditModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
-        <div class="backdrop-blur-2xl bg-white/60 dark:bg-black/60 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-white/20 dark:border-white/10">
+        <div class="backdrop-blur-2xl bg-white/90 dark:bg-black/70 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-white/30 dark:border-white/20">
           <h2 class="text-xl font-semibold text-slate-800 dark:text-white mb-5">编辑任务</h2>
           <div class="mb-4">
             <label class="block text-sm text-slate-700 dark:text-white/80 mb-1.5">标题</label>
             <input
               v-model="editTitle"
-              class="w-full px-4 py-2.5 bg-white/50 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all"
+              class="w-full px-4 py-2.5 bg-white/70 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all"
               required
             />
           </div>
@@ -512,7 +514,7 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
             <textarea
               v-model="edit描述"
               rows="2"
-              class="w-full px-4 py-2.5 bg-white/50 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all resize-none"
+              class="w-full px-4 py-2.5 bg-white/70 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all resize-none"
             ></textarea>
           </div>
           <div class="flex gap-3 mb-5">
@@ -521,14 +523,14 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
               <input
                 type="datetime-local"
                 v-model="edit截止日期"
-                class="w-full px-4 py-2.5 bg-white/50 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all"
+                class="w-full px-4 py-2.5 bg-white/70 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all"
               />
             </div>
             <div class="flex-1">
               <label class="block text-sm text-slate-700 dark:text-white/80 mb-1.5">优先级</label>
               <select
                 v-model.number="edit优先级"
-                class="w-full px-4 py-2.5 bg-white/50 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all"
+                class="w-full px-4 py-2.5 bg-white/70 dark:bg-white/10 border border-white/20 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none transition-all"
               >
                 <option :value="0">紧急且重要</option>
                 <option :value="1">重要</option>
@@ -538,10 +540,10 @@ const priorityLabels = ['紧急且重要', '重要', '紧急', '普通'];
             </div>
           </div>
           <div class="flex gap-3">
-            <button @click="saveEdit" class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500/80 to-indigo-500/80 dark:from-blue-600/80 dark:to-indigo-600/80 text-white font-medium rounded-xl hover:from-blue-500 hover:to-indigo-500 transition-all backdrop-blur-sm">
+            <button @click="saveEdit" class="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all">
               保存修改
             </button>
-            <button @click="closeEditModal" class="flex-1 px-4 py-2.5 bg-white/50 dark:bg-white/10 text-slate-700 dark:text-white/80 font-medium rounded-xl hover:bg-white/70 dark:hover:bg-white/20 border border-white/20 dark:border-white/10 transition-all">
+            <button @click="closeEditModal" class="flex-1 px-4 py-2.5 bg-white/70 dark:bg-white/10 text-slate-700 dark:text-white/80 font-medium rounded-xl hover:bg-white/80 dark:hover:bg-white/20 border border-white/20 dark:border-white/10 transition-all">
               取消
             </button>
           </div>
