@@ -226,15 +226,14 @@ function getTaskSubtasks(parentId: number): Task[] {
 </script>
 
 <template>
-  <main class="container mx-auto pt-24 p-4 flex flex-col items-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-    <!-- Custom Title Bar -->
-    <!-- 在穿透模式下，标题栏区域仍可响应鼠标事件 -->
+  <main class="w-full h-screen overflow-hidden bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <!-- Custom Title Bar (fixed, 高度 40px) -->
     <div
       class="fixed top-0 left-0 right-0 h-10 bg-gray-200 dark:bg-gray-800 flex items-center justify-between px-4 z-[9999] select-none"
       :class="{ 'pointer-events-auto': isIgnoringCursorEvents }"
       :style="isIgnoringCursorEvents ? 'pointer-events: auto;' : ''"
     >
-      <!-- Drag Area (invisible but provides drag functionality) -->
+      <!-- Drag Area -->
       <div class="absolute inset-0 cursor-move" @mousedown="startDrag"></div>
 
       <!-- Mac-style window buttons -->
@@ -257,7 +256,7 @@ function getTaskSubtasks(parentId: number): Task[] {
       </div>
     </div>
 
-    <!-- 功能按钮栏 -->
+    <!-- 功能按钮栏 (fixed, 高度 40px, 位于 top-10) -->
     <div class="fixed top-10 left-0 right-0 h-10 bg-gray-100 dark:bg-gray-700 flex items-center justify-end px-4 space-x-2 z-[9998] select-none" @mousedown="startDrag">
       <button @click="toggleDarkMode" :class="[isDarkMode ? 'bg-purple-600' : 'bg-gray-400', 'text-white px-2 py-0.5 rounded text-xs']">
         {{ isDarkMode ? '深色' : '浅色' }}
@@ -270,7 +269,9 @@ function getTaskSubtasks(parentId: number): Task[] {
       </button>
     </div>
 
-    <h1 class="text-4xl font-bold mb-8 text-blue-600 dark:text-blue-400 mt-20">待办事项</h1>
+    <!-- Scrollable Content Area (从 top-20 开始) -->
+    <div class="w-full h-full overflow-y-auto px-4 pb-4 pt-20">
+      <h1 class="text-4xl font-bold mb-8 text-blue-600 dark:text-blue-400 text-center">待办事项</h1>
 
     <!-- 编辑任务 Modal -->
     <div v-if="isEditModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -330,7 +331,7 @@ function getTaskSubtasks(parentId: number): Task[] {
     </div>
 
     <!-- New Task Input -->
-    <form @submit.prevent="addTask" class="w-full max-w-lg mb-8 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+    <form @submit.prevent="addTask" class="w-full mb-8 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
       <div class="mb-4">
         <label for="title" class="block text-sm font-medium mb-1">标题</label>
         <input
@@ -384,7 +385,7 @@ function getTaskSubtasks(parentId: number): Task[] {
     </form>
 
     <!-- Task Statistics -->
-    <div class="w-full max-w-lg mb-8 grid grid-cols-4 gap-4">
+    <div class="w-full mb-8 grid grid-cols-4 gap-4">
       <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 text-center">
         <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ taskStats.total }}</div>
         <div class="text-sm text-gray-600 dark:text-gray-400">全部</div>
@@ -404,7 +405,7 @@ function getTaskSubtasks(parentId: number): Task[] {
     </div>
 
     <!-- 逾期任务 -->
-    <div v-if="overdueTasks.length > 0" class="w-full max-w-lg mb-8 bg-red-100 dark:bg-red-800 shadow-md rounded-lg p-6 border-l-4 border-red-500">
+    <div v-if="overdueTasks.length > 0" class="w-full mb-8 bg-red-100 dark:bg-red-800 shadow-md rounded-lg p-6 border-l-4 border-red-500">
       <h2 class="text-xl font-bold mb-4 text-red-700 dark:text-red-300">逾期任务</h2>
       <ul>
         <li v-for="task in overdueTasks" :key="task.id" class="flex items-center justify-between p-2 border-b border-red-200 dark:border-red-700 last:border-b-0">
@@ -422,7 +423,7 @@ function getTaskSubtasks(parentId: number): Task[] {
     </div>
 
     <!-- Date Filter -->
-    <div class="w-full max-w-lg mb-8 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+    <div class="w-full mb-8 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
       <label for="date-filter" class="block text-sm font-medium mb-1">按日期筛选：</label>
       <input
         id="date-filter"
@@ -437,7 +438,7 @@ function getTaskSubtasks(parentId: number): Task[] {
     <div v-else-if="displayedTasks.length === 0" class="text-lg text-gray-600 dark:text-gray-400">
       这一天没有任务，放松一下或添加新任务吧。
     </div>
-    <ul v-else class="w-full max-w-lg bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+    <ul v-else class="w-full bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
       <li
         v-for="task in displayedTasks"
         :key="task.id"
@@ -549,6 +550,7 @@ function getTaskSubtasks(parentId: number): Task[] {
         </ul>
       </li>
     </ul>
+    </div>
   </main>
 </template>
 
