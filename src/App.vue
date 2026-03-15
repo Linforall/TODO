@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from "vue";
 import { state, actions, smartSortedTasks, overdueTasks, getSubtasks } from "./store";
 import type { Task } from "./db";
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { checkAndSendNotifications } from "./notification";
 import { register } from "@tauri-apps/plugin-global-shortcut";
 
@@ -28,6 +29,19 @@ const edit优先级 = ref(3);
 const isAlwaysOnTop = ref(false);
 const isIgnoringCursorEvents = ref(false);
 const isDarkMode = ref(false);
+
+// Drag functionality
+const startDrag = async (event: MouseEvent) => {
+  // Only start dragging on left mouse button
+  if (event.button === 0) {
+    try {
+      const appWindow = getCurrentWindow();
+      await appWindow.startDragging();
+    } catch (e) {
+      console.error('Drag error:', e);
+    }
+  }
+};
 
 const selectedDate = ref(new Date().toISOString().split('T')[0]); // YYYY-MM-DD
 
@@ -212,17 +226,19 @@ function getTaskSubtasks(parentId: number): Task[] {
 </script>
 
 <template>
-  <main class="container mx-auto p-4 flex flex-col items-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100" data-tauri-drag-region>
+  <main class="container mx-auto pt-24 p-4 flex flex-col items-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <!-- Custom Title Bar -->
     <!-- 在穿透模式下，标题栏区域仍可响应鼠标事件 -->
     <div
-      class="fixed top-0 left-0 right-0 h-10 bg-gray-200 dark:bg-gray-800 flex items-center justify-between px-4 z-[9999]"
+      class="fixed top-0 left-0 right-0 h-10 bg-gray-200 dark:bg-gray-800 flex items-center justify-between px-4 z-[9999] select-none"
       :class="{ 'pointer-events-auto': isIgnoringCursorEvents }"
-      data-tauri-drag-region
       :style="isIgnoringCursorEvents ? 'pointer-events: auto;' : ''"
     >
+      <!-- Drag Area (invisible but provides drag functionality) -->
+      <div class="absolute inset-0 cursor-move" @mousedown="startDrag"></div>
+
       <!-- Mac-style window buttons -->
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-2 relative z-10">
         <button @click="closeWindow" class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center group" title="关闭">
           <svg class="w-2 h-2 text-red-800 opacity-0 group-hover:opacity-100" viewBox="0 0 8 8" fill="none">
             <path d="M1 1l6 6M7 1l-6 6" stroke="currentColor" stroke-width="1.5"/>
@@ -239,21 +255,22 @@ function getTaskSubtasks(parentId: number): Task[] {
           </svg>
         </button>
       </div>
-      <span class="text-sm font-medium text-gray-700 dark:text-gray-300 absolute left-1/2 transform -translate-x-1/2 select-none" data-tauri-drag-region>待办事项</span>
-      <div class="flex items-center space-x-2">
-        <button @click="toggleDarkMode" :class="[isDarkMode ? 'bg-purple-600' : 'bg-gray-400', 'text-white px-2 py-0.5 rounded text-xs']">
-          {{ isDarkMode ? '深色' : '浅色' }}
-        </button>
-        <button @click="toggleAlwaysOnTop" :class="[isAlwaysOnTop ? 'bg-blue-600' : 'bg-gray-400', 'text-white px-2 py-0.5 rounded text-xs']">
-          {{ isAlwaysOnTop ? '置顶' : '取消置顶' }}
-        </button>
-        <button @click="toggleIgnoreCursorEvents" :class="[isIgnoringCursorEvents ? 'bg-green-600' : 'bg-gray-400', 'text-white px-2 py-0.5 rounded text-xs']">
-          {{ isIgnoringCursorEvents ? '穿透' : '取消穿透' }}
-        </button>
-      </div>
     </div>
 
-    <h1 class="text-4xl font-bold mb-8 text-blue-600 dark:text-blue-400 mt-12">待办事项</h1>
+    <!-- 功能按钮栏 -->
+    <div class="fixed top-10 left-0 right-0 h-10 bg-gray-100 dark:bg-gray-700 flex items-center justify-end px-4 space-x-2 z-[9998] select-none" @mousedown="startDrag">
+      <button @click="toggleDarkMode" :class="[isDarkMode ? 'bg-purple-600' : 'bg-gray-400', 'text-white px-2 py-0.5 rounded text-xs']">
+        {{ isDarkMode ? '深色' : '浅色' }}
+      </button>
+      <button @click="toggleAlwaysOnTop" :class="[isAlwaysOnTop ? 'bg-blue-600' : 'bg-gray-400', 'text-white px-2 py-0.5 rounded text-xs']">
+        {{ isAlwaysOnTop ? '置顶' : '取消置顶' }}
+      </button>
+      <button @click="toggleIgnoreCursorEvents" :class="[isIgnoringCursorEvents ? 'bg-green-600' : 'bg-gray-400', 'text-white px-2 py-0.5 rounded text-xs']">
+        {{ isIgnoringCursorEvents ? '穿透' : '取消穿透' }}
+      </button>
+    </div>
+
+    <h1 class="text-4xl font-bold mb-8 text-blue-600 dark:text-blue-400 mt-20">待办事项</h1>
 
     <!-- 编辑任务 Modal -->
     <div v-if="isEditModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
