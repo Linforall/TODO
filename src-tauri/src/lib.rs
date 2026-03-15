@@ -1,4 +1,5 @@
-use tauri::{Manager, AppHandle};
+use tauri::{Manager, AppHandle, Emitter};
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -23,6 +24,20 @@ async fn set_ignore_cursor_events(app: AppHandle, ignore: bool) -> Result<(), St
     } else {
         Err("Main window not found".to_string())
     }
+}
+
+fn setup_global_shortcuts(app: &AppHandle) {
+    let app_handle = app.clone();
+
+    // Register Ctrl+Shift+X to exit ignore cursor events mode
+    let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyX);
+
+    app.global_shortcut().on_shortcut(shortcut, move |_app, _shortcut, event| {
+        if event.state == ShortcutState::Pressed {
+            // Emit event to frontend to toggle ignore cursor events
+            let _ = app_handle.emit("exit-passthrough", ());
+        }
+    }).unwrap_or_default();
 }
 
 #[tauri::command]
@@ -78,6 +93,10 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![greet, set_always_on_top, set_ignore_cursor_events, send_notification, close_window, minimize_window, toggle_maximize])
+        .setup(|app| {
+            setup_global_shortcuts(app.handle());
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
