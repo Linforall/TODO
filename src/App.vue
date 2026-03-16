@@ -40,7 +40,6 @@ const tooltipState = ref({
 });
 
 function showTooltip(event: MouseEvent, text: string) {
-  const tooltipHeight = 40; // 估算 tooltip 高度
   const threshold = 60; // 距离顶部多少像素时切换方向
 
   // 检测是否靠近窗口顶部，如果是则显示在下方
