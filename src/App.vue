@@ -7,6 +7,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { checkAndSendNotifications } from "./notification";
 import { register } from "@tauri-apps/plugin-global-shortcut";
+import GeekProgressBar from "./components/GeekProgressBar.vue";
 
 const newTaskTitle = ref("");
 const newTask描述 = ref("");
@@ -272,7 +273,7 @@ function getTaskSubtasks(parentId: number): Task[] {
     <div class="absolute left-1/2 -translate-x-1/2 top-full border-4 border-transparent border-t-slate-800 dark:border-t-white"></div>
   </div>
 
-  <main class="w-full h-screen overflow-hidden" :class="isDarkMode ? 'dark' : ''" @mousemove="tooltipState.show && hideTooltip()">
+  <main class="w-full h-screen overflow-hidden" :class="isDarkMode ? 'dark' : ''">
     <!-- 背景 -->
     <div class="fixed inset-0 -z-10"
       :class="isDarkMode ? 'bg-slate-900/80' : 'bg-[#cfc9b5]'"
@@ -314,44 +315,54 @@ function getTaskSubtasks(parentId: number): Task[] {
           </button>
         </div>
 
-        <div class="flex items-center space-x-2 relative z-10">
-          <button @click="toggleDarkMode" class="p-1.5 rounded-lg transition-all duration-200"
-            :class="isDarkMode ? 'hover:bg-slate-700' : 'bg-[#f0f0f2] hover:bg-white shadow-md'"
+        <div class="flex items-center gap-1 relative z-10">
+          <!-- 深色/浅色模式切换 -->
+          <button @click="toggleDarkMode"
+            class="w-7 h-7 flex items-center justify-center rounded-md transition-all duration-200 hover:scale-110"
+            :class="isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'"
             @mouseenter="showTooltip($event, isDarkMode ? '浅色模式' : '深色模式')" @mouseleave="hideTooltip">
-            <svg v-if="isDarkMode" class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+            <!-- 太阳图标：简洁的实心圆形+光芒 -->
+            <svg v-if="!isDarkMode" class="w-4 h-4 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
             </svg>
-            <svg v-else class="w-4 h-4 text-[#1e3246]" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+            <!-- 月亮图标：简洁的新月 -->
+            <svg v-else class="w-4 h-4 text-yellow-300" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
             </svg>
           </button>
-          <button @click="toggleAlwaysOnTop" class="p-1.5 rounded-lg transition-all duration-200"
+
+          <!-- 置顶功能 -->
+          <button @click="toggleAlwaysOnTop"
+            class="w-7 h-7 flex items-center justify-center rounded-md transition-all duration-200 hover:scale-110"
             :class="[
-              isDarkMode ? 'hover:bg-slate-700' : 'bg-[#f0f0f2] hover:bg-white shadow-md',
-              isAlwaysOnTop ? (isDarkMode ? 'bg-blue-500/20' : 'bg-[#1e3246]/20') : ''
+              isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5',
+              isAlwaysOnTop ? 'text-blue-400' : (isDarkMode ? 'text-gray-300' : 'text-gray-600')
             ]"
             @mouseenter="showTooltip($event, isAlwaysOnTop ? '取消置顶' : '置顶')" @mouseleave="hideTooltip">
-            <!-- 图钉图标 -->
-            <svg v-if="isAlwaysOnTop" class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M11 3a1 1 0 10-2 0v1.586l-3.293-3.293a1 1 0 00-1.414 0L4 6.414V7a1 1 0 001 1h1.586l.707.707a1 1 0 001.414 0L9 6.414V5a1 1 0 00-1-1h-1a1 1 0 00-1 1v1.586l-1 1V19a2 2 0 002 2h6a2 2 0 002-2V8.414l1-1V11a1 1 0 102 0V5a1 1 0 00-1-1h-1z"/>
-              <path fill-rule="evenodd" d="M14 5a1 1 0 011 1v1h1a1 1 0 110 2H4a1 1 0 010-2h1V6a1 1 0 011-1h2z" clip-rule="evenodd"/>
-            </svg>
-            <svg v-else class="w-4 h-4" :class="isDarkMode ? 'text-gray-400' : 'text-[#858585]'" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5.5 3a.5.5 0 00-.5.5v2.882c-.36-.086-.73-.132-1.107-.132A2.5 2.5 0 003.5 8.25v7.75a2 2 0 002 2h9a2 2 0 002-2v-7.75a2.5 2.5 0 00-2.5-2.5c-.377 0-.747.046-1.107.132V3.5a.5.5 0 00-.5-.5h-3.5zM9 6a1 1 0 011-1h2a1 1 0 011 1v1.586l.707-.707a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l.707.707V6z" clip-rule="evenodd"/>
+            <!-- 图钉图标：简洁直观 -->
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M16 4a1 1 0 0 1 1 1v3.586l1.707 1.707a1 1 0 0 1 .293.707v2a1 1 0 0 1-1 1h-5v5l-1 2-1-2v-5H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 .293-.707L7 8.586V5a1 1 0 0 1 1-1h8z"/>
             </svg>
           </button>
-          <button @click="toggleIgnoreCursorEvents" class="p-1.5 rounded-lg transition-all duration-200"
+
+          <!-- 鼠标穿透功能 -->
+          <button @click="toggleIgnoreCursorEvents"
+            class="w-7 h-7 flex items-center justify-center rounded-md transition-all duration-200 hover:scale-110"
             :class="[
-              isDarkMode ? 'hover:bg-slate-700' : 'bg-[#f0f0f2] hover:bg-white shadow-md',
-              isIgnoringCursorEvents ? (isDarkMode ? 'bg-green-500/20' : 'bg-[#e84a1b]/20') : ''
+              isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5',
+              isIgnoringCursorEvents ? 'text-rose-400' : (isDarkMode ? 'text-gray-300' : 'text-gray-600')
             ]"
             @mouseenter="showTooltip($event, isIgnoringCursorEvents ? '取消穿透' : '鼠标穿透')" @mouseleave="hideTooltip">
-            <!-- 手势图标 -->
-            <svg v-if="isIgnoringCursorEvents" class="w-4 h-4 text-[#e84a1b]" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            <!-- 眼睛图标：直观表示透视/穿透 -->
+            <svg v-if="!isIgnoringCursorEvents" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
             </svg>
-            <svg v-else class="w-4 h-4" :class="isDarkMode ? 'text-gray-400' : 'text-[#858585]'" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z" clip-rule="evenodd"/>
+            <!-- 关闭的眼睛：表示穿透启用 -->
+            <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
             </svg>
           </button>
         </div>
@@ -414,6 +425,9 @@ function getTaskSubtasks(parentId: number): Task[] {
                     isDarkMode ? 'text-white' : ''
                   ]"
                 >{{ task.title }}</span>
+                <div v-if="task.description" class="text-xs mt-1 line-clamp-2" :class="isDarkMode ? 'text-white/60' : 'text-gray-500'">
+                  {{ task.description }}
+                </div>
               </div>
               <button @click="deleteTask(task.id)" class="p-1.5 transition-colors opacity-0 hover:opacity-100"
               >
@@ -446,6 +460,9 @@ function getTaskSubtasks(parentId: number): Task[] {
                   <span
                     class="font-medium uppercase line-through decoration-[1.5px] text-black/50"
                   >{{ task.title }}</span>
+                  <div v-if="task.description" class="text-xs mt-1 line-clamp-2 text-black/30">
+                    {{ task.description }}
+                  </div>
                 </div>
                 <button @click="deleteTask(task.id)" class="p-1.5 transition-colors opacity-0 hover:opacity-100"
                 >
@@ -480,6 +497,7 @@ function getTaskSubtasks(parentId: number): Task[] {
                     :class="isDarkMode ? 'text-white' : 'text-black'"
                   >{{ task.title }}</span>
                   <p class="text-xs" :class="isDarkMode ? 'text-rose-400' : 'text-[#e84a1b]'">截止：{{ new Date(task.deadline!).toLocaleString() }}</p>
+                  <p v-if="task.description" class="text-xs mt-1 line-clamp-2" :class="isDarkMode ? 'text-white/50' : 'text-gray-500'">{{ task.description }}</p>
                 </div>
               </div>
               <div class="flex items-center space-x-2 ml-3">
@@ -685,11 +703,9 @@ function getTaskSubtasks(parentId: number): Task[] {
         </div>
       </div>
 
-      <!-- Bottom Status Bar -->
-      <div class="fixed bottom-0 left-0 right-0 h-8 flex items-center justify-between px-2 py-4"
-      >
-        <span class="text-[10px] uppercase tracking-[0.5px] font-medium">ACTIVE: {{ taskStats.pending }}</span>
-        <span class="text-[10px] uppercase tracking-[0.5px] font-medium">SYNCED</span>
+      <!-- Bottom Status Bar - Geek Progress Bar -->
+      <div class="fixed bottom-0 left-0 right-0">
+        <GeekProgressBar :stats="taskStats" :is-dark-mode="isDarkMode" />
       </div>
     </div>
   </main>
