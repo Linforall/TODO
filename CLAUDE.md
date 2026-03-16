@@ -61,6 +61,65 @@ tasks (
 - **深色模式**: 通过 isDarkMode ref 切换；动态改变背景和毛玻璃透明度
 - **毛玻璃效果**: backdrop-blur-2xl 配合半透明背景 (bg-white/30, bg-white/40)
 
+## 图标使用规范
+
+项目图标获取和使用的标准规范。
+
+### 图标来源
+
+- **Iconify 图标库**: https://icones.js.org/ - 推荐使用，包含数千个开源图标
+- **Heroicons**: https://heroicons.com/ - 作为备用参考风格
+
+### 使用方式
+
+#### 方式一：内联 SVG（推荐用于简单图标）
+对于简单的图标（如窗口控制、功能按钮），直接内联 SVG 到组件中：
+
+```vue
+<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+</svg>
+```
+
+#### 方式二：Iconify Vue 组件（推荐用于大量图标）
+如需使用大量图标，可安装 `@iconify/vue` 库：
+
+```bash
+pnpm add @iconify/vue
+```
+
+使用示例：
+```vue
+<script setup>
+import { Icon } from '@iconify/vue'
+</script>
+
+<template>
+  <Icon icon="ph:checkmark-circle-fill" class="w-5 h-5" />
+</template>
+```
+
+### 当前使用的图标
+
+项目中已使用的图标（内联 SVG）：
+
+| 图标 | 用途 |
+|------|------|
+| 关闭按钮 (X) | 关闭窗口、模态框 |
+| 最小化 (横线) | 最小化窗口 |
+| 最大化 (框) | 最大化/还原窗口 |
+| 太阳/月亮 | 深色/浅色模式切换 |
+| 图钉 | 窗口置顶功能 |
+| 眼睛 | 鼠标穿透模式 |
+| 垃圾桶 | 删除任务 |
+
+### 图标选择建议
+
+- **简单功能**: 使用内联 SVG，减少依赖
+- **复杂图标集**: 使用 Iconify，按需加载
+- **风格统一**: 优先选择 Outline 或 Solid 风格，保持一致
+- **尺寸统一**: 使用 Tailwind 的 w-5 h-5 或自定义类确保尺寸一致
+
 ## Git 提交规范
 
 提交代码时需遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范，格式如下：
@@ -107,3 +166,18 @@ git commit -m "feat: 优化毛玻璃视觉效果
 - 使用中文编写提交描述
 - 描述应简洁明了，说明本次修改的内容
 - 保持提交粒度适中，一个提交只做一件事
+
+## 代码格式化
+
+生成或修改代码后，必须对文件进行格式化：
+
+```bash
+# 格式化前端代码 (Vue/TypeScript)
+pnpm exec prettier --write src/**/*.vue src/**/*.ts
+
+# 格式化 Rust 代码
+cd src-tauri && cargo fmt
+```
+
+- 前端使用 Prettier 格式化
+- Rust 使用 cargo fmt 格式化

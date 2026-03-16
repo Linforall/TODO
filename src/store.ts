@@ -37,7 +37,11 @@ export const actions = {
     const db = await getDb();
     const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
     await db.execute('UPDATE tasks SET status = ? WHERE id = ?', [newStatus, id]);
-    await this.fetchTasks();
+    // 直接更新本地状态，不触发重新加载
+    const task = state.tasks.find(t => t.id === id);
+    if (task) {
+      task.status = newStatus;
+    }
   },
 
   async deleteTask(id: number) {
