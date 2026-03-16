@@ -375,7 +375,7 @@ function getTaskSubtasks(parentId: number): Task[] {
         </div>
 
         <!-- 笔记本样式 - 输入框和任务列表 -->
-        <div class="mx-2 border-l border-t border-black">
+        <div class="mx-2 border-l border-t border-r border-black">
           <!-- 输入区域 -->
           <div class="flex border-b border-black">
             <input
@@ -383,11 +383,11 @@ function getTaskSubtasks(parentId: number): Task[] {
               v-model="newTaskTitle"
               @keyup.enter="isAddTaskModalOpen = true"
               placeholder="Enter new task..."
-              class="flex-grow bg-transparent border-none p-4 text-base font-medium text-black uppercase placeholder-black/40 focus:outline-none focus:bg-black/5"
+              class="flex-1 bg-transparent border-none p-4 text-base font-medium text-black uppercase placeholder-black/40 focus:outline-none focus:bg-black/5"
             />
             <button
               @click="isAddTaskModalOpen = true"
-              class="w-[60px] flex items-center justify-center border-l border-black text-2xl text-black hover:bg-black hover:text-[#cfc9b5] transition-colors"
+              class="w-[60px] flex-shrink-0 flex items-center justify-center border-l border-black text-2xl text-black hover:bg-black hover:text-[#cfc9b5] transition-colors"
             >
               +
             </button>
@@ -400,10 +400,10 @@ function getTaskSubtasks(parentId: number): Task[] {
             <div
               v-for="task in displayedTasks"
               :key="task.id"
-              class="flex items-start p-4 border-b border-black"
+              class="flex items-center border-b border-black h-16"
             >
               <!-- 自定义复选框 -->
-              <label class="relative w-5 h-5 flex-shrink-0 mr-3 mt-0.5">
+              <label class="relative w-5 h-5 flex-shrink-0 mx-4 self-center cursor-pointer">
                 <input
                   type="checkbox"
                   :checked="task.status === 'completed'"
@@ -411,13 +411,27 @@ function getTaskSubtasks(parentId: number): Task[] {
                   class="absolute opacity-0 cursor-pointer h-0 w-0"
                 />
                 <span
-                  class="absolute top-0 left-0 w-5 h-5 border-[1.5px] border-black transition-all"
-                  :class="task.status === 'completed' ? 'bg-black' : 'bg-transparent'"
+                  class="absolute top-0 left-0 w-5 h-5 border-[1.5px] border-black rounded-sm transition-all"
+                  :class="task.status === 'completed' ? 'border-black' : 'border-gray-400'"
                 ></span>
+                <!-- 勾选图标 - 手绘风格 -->
+                <svg
+                  v-if="task.status === 'completed'"
+                  class="absolute top-0 left-0 w-5 h-5 pointer-events-none"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12l5 5L20 7" />
+                </svg>
               </label>
-              <div class="flex-1 min-w-0">
+              <!-- 内容区域 -->
+              <div class="flex-1 pr-4 min-w-0 overflow-hidden self-center">
                 <span
-                  class="font-medium uppercase"
+                  class="font-medium uppercase block"
                   :class="[
                     task.status === 'completed'
                       ? 'line-through decoration-[1.5px] text-black/50'
@@ -425,26 +439,29 @@ function getTaskSubtasks(parentId: number): Task[] {
                     isDarkMode ? 'text-white' : ''
                   ]"
                 >{{ task.title }}</span>
-                <div v-if="task.description" class="text-xs mt-1 line-clamp-2" :class="isDarkMode ? 'text-white/60' : 'text-gray-500'">
+                <div v-if="task.description" class="text-xs mt-0.5 line-clamp-1" :class="isDarkMode ? 'text-white/60' : 'text-gray-500'">
                   {{ task.description }}
                 </div>
               </div>
-              <button @click="deleteTask(task.id)" class="p-1.5 transition-colors opacity-0 hover:opacity-100"
-              >
-                <svg class="w-4 h-4 text-black/50" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm1 3a1 1 0 100 2h4a1 1 0 100-2H8z" clip-rule="evenodd"/>
-                </svg>
-              </button>
+              <!-- 删除按钮 -->
+              <div class="w-8 flex-shrink-0 mr-4 flex justify-end self-center">
+                <button @click="deleteTask(task.id)" class="p-1.5 transition-colors opacity-0 hover:opacity-100"
+                >
+                  <svg class="w-4 h-4 text-black/50" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm1 3a1 1 0 100 2h4a1 1 0 100-2H8z" clip-rule="evenodd"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
           <!-- 已完成任务 -->
           <div v-if="completedTasks.length > 0">
             <div>
-              <div v-for="task in completedTasks" :key="task.id" class="flex items-start p-4 border-b border-black"
+              <div v-for="task in completedTasks" :key="task.id" class="flex items-center border-b border-black h-16"
               >
                 <!-- 自定义复选框 -->
-                <label class="relative w-5 h-5 flex-shrink-0 mr-3 mt-0.5">
+                <label class="relative w-5 h-5 flex-shrink-0 mx-4 self-center cursor-pointer">
                   <input
                     type="checkbox"
                     :checked="task.status === 'completed'"
@@ -452,24 +469,37 @@ function getTaskSubtasks(parentId: number): Task[] {
                     class="absolute opacity-0 cursor-pointer h-0 w-0"
                   />
                   <span
-                    class="absolute top-0 left-0 w-5 h-5 border-[1.5px] border-black transition-all"
-                    :class="task.status === 'completed' ? 'bg-black' : 'bg-transparent'"
+                    class="absolute top-0 left-0 w-5 h-5 border-[1.5px] border-black rounded-sm transition-all"
                   ></span>
+                  <!-- 勾选图标 - 手绘风格 -->
+                  <svg
+                    class="absolute top-0 left-0 w-5 h-5 pointer-events-none"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M5 12l5 5L20 7" />
+                  </svg>
                 </label>
-                <div class="flex-1 min-w-0">
+                <div class="flex-1 pr-4 min-w-0 overflow-hidden self-center">
                   <span
-                    class="font-medium uppercase line-through decoration-[1.5px] text-black/50"
+                    class="font-medium uppercase line-through decoration-[1.5px] text-black/50 block"
                   >{{ task.title }}</span>
-                  <div v-if="task.description" class="text-xs mt-1 line-clamp-2 text-black/30">
+                  <div v-if="task.description" class="text-xs mt-0.5 line-clamp-1 text-black/30">
                     {{ task.description }}
                   </div>
                 </div>
-                <button @click="deleteTask(task.id)" class="p-1.5 transition-colors opacity-0 hover:opacity-100"
-                >
-                  <svg class="w-4 h-4 text-black/50" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm1 3a1 1 0 100 2h4a1 1 0 100-2H8z" clip-rule="evenodd"/>
-                  </svg>
-                </button>
+                <div class="w-8 flex-shrink-0 mr-4 flex justify-end self-center">
+                  <button @click="deleteTask(task.id)" class="p-1.5 transition-colors opacity-0 hover:opacity-100"
+                  >
+                    <svg class="w-4 h-4 text-black/50" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm1 3a1 1 0 100 2h4a1 1 0 100-2H8z" clip-rule="evenodd"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -482,15 +512,15 @@ function getTaskSubtasks(parentId: number): Task[] {
           >
             逾期任务
           </h2>
-          <div class="border-l border-black pl-4">
-            <div v-for="task in overdueTasks" :key="task.id" class="flex items-center justify-between p-3 border-b border-black/20"
+          <div class="border-l border-black pl-4 w-full box-border">
+            <div v-for="task in overdueTasks" :key="task.id" class="flex items-center w-full p-3 border-b border-black/20 box-border"
             >
-              <div class="flex items-center gap-3 flex-1 min-w-0">
+              <div class="flex items-center gap-3 flex-1 min-w-0 w-full">
                 <input
                   type="checkbox"
                   :checked="task.status === 'completed'"
                   @change="toggleComplete(task)"
-                  class="w-5 h-5 rounded-none cursor-pointer border-2 border-black bg-transparent"
+                  class="w-5 h-5 rounded-none cursor-pointer border-2 border-black bg-transparent flex-shrink-0"
                 />
                 <div class="flex-1 min-w-0">
                   <span class="font-medium uppercase truncate block"
@@ -500,12 +530,12 @@ function getTaskSubtasks(parentId: number): Task[] {
                   <p v-if="task.description" class="text-xs mt-1 line-clamp-2" :class="isDarkMode ? 'text-white/50' : 'text-gray-500'">{{ task.description }}</p>
                 </div>
               </div>
-              <div class="flex items-center space-x-2 ml-3">
-                <button @click="snoozeTask(task, 1)" class="px-3 py-1.5 text-xs font-medium border border-black hover:bg-black hover:text-white transition-colors"
+              <div class="flex items-center space-x-2 ml-3 flex-shrink-0">
+                <button @click="snoozeTask(task, 1)" class="px-3 py-1.5 text-xs font-medium border border-black hover:bg-black hover:text-white transition-colors whitespace-nowrap"
                 >延后1天</button>
-                <button @click="snoozeTask(task, 7)" class="px-3 py-1.5 text-xs font-medium border border-black hover:bg-black hover:text-white transition-colors"
+                <button @click="snoozeTask(task, 7)" class="px-3 py-1.5 text-xs font-medium border border-black hover:bg-black hover:text-white transition-colors whitespace-nowrap"
                 >延后7天</button>
-                <button @click="deleteTask(task.id)" class="p-1.5 rounded-lg transition-colors"
+                <button @click="deleteTask(task.id)" class="p-1.5 rounded-lg transition-colors flex-shrink-0"
                   :class="isDarkMode ? 'text-rose-400 hover:bg-rose-900/50' : 'text-[#e84a1b] hover:bg-rose-100'"
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
