@@ -23,20 +23,20 @@ export async function checkAndSendNotifications() {
   const now = new Date();
   const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000); // Tasks due in the next hour
 
-  const upcomingTasks = await db.select<Task[]>(`
-    SELECT * FROM tasks
-    WHERE deadline IS NOT NULL
-      AND status = 'pending'
-      AND deadline BETWEEN '${now.toISOString()}' AND '${oneHourFromNow.toISOString()}'
-    ORDER BY deadline ASC
-  `);
+  const upcomingTasks = await db.select<Task[]>(
+    `SELECT * FROM tasks
+     WHERE deadline IS NOT NULL
+       AND status = ?
+       AND deadline BETWEEN ? AND ?
+     ORDER BY deadline ASC`,
+    ['pending', now.toISOString(), oneHourFromNow.toISOString()]
+  );
 
-  for (const task of upcomingTasks) {
-    await invoke("send_notification", {
+  // 并行发送通知
+  await Promise.all(upcomingTasks.map(task =>
+    invoke("send_notification", {
       title: "Upcoming Task: " + task.title,
       body: `Due by ${new Date(task.deadline!).toLocaleString()}`,
-    });
-    // Optionally, mark task as notified to prevent repeated notifications
-    // This would require an additional column in the database (e.g., `notified_at`)
-  }
+    })
+  ));
 }

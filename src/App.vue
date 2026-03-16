@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from "vue";
-import { state, actions, smartSortedTasks, overdueTasks, getSubtasks } from "./store";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { unregister } from "@tauri-apps/plugin-global-shortcut";
+import { state, actions, smartSortedTasks, overdueTasks } from "./store";
 import type { Task } from "./db";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -14,12 +15,6 @@ const newTask描述 = ref("");
 const newTask截止日期 = ref<string | null>(null);
 const newTask优先级 = ref(3);
 
-const addingSubtaskToTaskId = ref<number | null>(null);
-const newSubtaskTitle = ref("");
-const newSubtaskDescription = ref("");
-const newSubtaskDeadline = ref<string | null>(null);
-const newSubtaskPriority = ref(3);
-
 const isEditModalOpen = ref(false);
 const isAddTaskModalOpen = ref(false);
 const editingTask = ref<Task | null>(null);
@@ -31,6 +26,10 @@ const edit优先级 = ref(3);
 const isAlwaysOnTop = ref(false);
 const isIgnoringCursorEvents = ref(false);
 const isDarkMode = ref(false);
+
+// 清理函数引用
+let notificationInterval: number | null = null;
+let unlistenExitPassthrough: (() => void) | null = null;
 
 // 自定义 Tooltip 状态
 const tooltipState = ref({
@@ -67,26 +66,44 @@ const startDrag = async (event: MouseEvent) => {
 const selectedDate = ref(new Date().toISOString().split('T')[0]);
 
 const taskStats = computed(() => {
-  const allTasks = state.tasks;
-  const total = allTasks.length;
-  const completed = allTasks.filter(t => t.status === 'completed').length;
-  const pending = allTasks.filter(t => t.status === 'pending').length;
-  const overdue = overdueTasks.value.length;
-  return { total, completed, pending, overdue };
+  let completed = 0, pending = 0;
+  for (const task of state.tasks) {
+    if (task.status === 'completed') completed++;
+    else if (task.status === 'pending') pending++;
+  }
+  return {
+    total: state.tasks.length,
+    completed,
+    pending,
+    overdue: overdueTasks.value.length
+  };
 });
 
 onMounted(async () => {
   actions.fetchTasks();
-  setInterval(checkAndSendNotifications, 5 * 60 * 1000);
+  notificationInterval = window.setInterval(checkAndSendNotifications, 5 * 60 * 1000);
   registerEscapeShortcut();
 
   // Listen for global shortcut to exit passthrough mode
-  listen("exit-passthrough", async () => {
+  unlistenExitPassthrough = await listen("exit-passthrough", async () => {
     if (isIgnoringCursorEvents.value) {
       isIgnoringCursorEvents.value = false;
       await invoke("set_ignore_cursor_events", { ignore: false });
     }
   });
+});
+
+onUnmounted(() => {
+  // 清理定时器
+  if (notificationInterval) {
+    clearInterval(notificationInterval);
+  }
+  // 清理事件监听器
+  if (unlistenExitPassthrough) {
+    unlistenExitPassthrough();
+  }
+  // 注销全局快捷键
+  unregister("Escape").catch(() => {});
 });
 
 async function registerEscapeShortcut() {
@@ -191,6 +208,9 @@ function openEditModal(task: Task) {
   isEditModalOpen.value = true;
 }
 
+// 供模板调用的编辑函数
+defineExpose({ openEditModal });
+
 async function saveEdit() {
   if (editingTask.value && editTitle.value.trim()) {
     await actions.updateTask(editingTask.value.id, {
@@ -215,50 +235,6 @@ function toggleDarkMode() {
   } else {
     document.documentElement.classList.remove('dark');
   }
-}
-
-const expandedTaskIds = ref<Set<number>>(new Set());
-
-function toggleSubtasks(taskId: number) {
-  if (expandedTaskIds.value.has(taskId)) {
-    expandedTaskIds.value.delete(taskId);
-  } else {
-    expandedTaskIds.value.add(taskId);
-  }
-}
-
-function isSubtasksExpanded(taskId: number): boolean {
-  return expandedTaskIds.value.has(taskId);
-}
-
-function showAddSubtask(taskId: number) {
-  addingSubtaskToTaskId.value = taskId;
-  newSubtaskTitle.value = "";
-  newSubtaskDescription.value = "";
-  newSubtaskDeadline.value = null;
-  newSubtaskPriority.value = 3;
-}
-
-function hideAddSubtask() {
-  addingSubtaskToTaskId.value = null;
-}
-
-async function addSubtask(parentId: number) {
-  if (newSubtaskTitle.value.trim()) {
-    await actions.addTask({
-      title: newSubtaskTitle.value.trim(),
-      description: newSubtaskDescription.value.trim() || null,
-      deadline: newSubtaskDeadline.value,
-      priority: newSubtaskPriority.value,
-      parent_id: parentId,
-      reminder_at: null,
-    });
-    hideAddSubtask();
-  }
-}
-
-function getTaskSubtasks(parentId: number): Task[] {
-  return getSubtasks(parentId);
 }
 </script>
 

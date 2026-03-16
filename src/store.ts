@@ -1,5 +1,22 @@
 import { reactive, computed } from 'vue';
 import { getDb, Task } from './db';
+
+// 任务状态常量
+export const TaskStatus = {
+  PENDING: 'pending',
+  ONGOING: 'ongoing',
+  COMPLETED: 'completed',
+  SKIPPED: 'skipped'
+} as const;
+
+// 优先级常量
+export const Priority = {
+  URGENT_IMPORTANT: 0,
+  IMPORTANT: 1,
+  URGENT: 2,
+  NORMAL: 3
+} as const;
+
 export const state = reactive({
   tasks: [] as Task[],
   loading: false,
@@ -59,7 +76,7 @@ export const actions = {
   async updateTask(id: number, updates: Partial<Omit<Task, 'id' | 'created_at'>>) {
     const db = await getDb();
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: (string | number | null)[] = [];
 
     if (updates.title !== undefined) { fields.push('title = ?'); values.push(updates.title); }
     if (updates.description !== undefined) { fields.push('description = ?'); values.push(updates.description); }
@@ -77,22 +94,21 @@ export const actions = {
   }
 };
 
-// Panic Value Calculation Logic (Higher = More Urgent)
+// Panic Value Calculation (Higher = More Urgent)
+function getPanicValue(task: Task): number {
+  let score = (3 - task.priority) * 10;
+  if (task.deadline) {
+    const remaining = new Date(task.deadline).getTime() - Date.now();
+    const hoursLeft = remaining / (1000 * 60 * 60);
+    if (hoursLeft < 0) score += 100;
+    else if (hoursLeft < 24) score += 50;
+    else score += Math.max(0, 24 * 7 / hoursLeft);
+  }
+  return score;
+}
+
 export const smartSortedTasks = computed(() => {
-  return [...state.tasks].sort((a, b) => {
-    const getPanicValue = (task: Task) => {
-      let score = (3 - task.priority) * 10; // Priority weight
-      if (task.deadline) {
-        const remaining = new Date(task.deadline).getTime() - Date.now();
-        const hoursLeft = remaining / (1000 * 60 * 60);
-        if (hoursLeft < 0) score += 100; // Overdue
-        else if (hoursLeft < 24) score += 50; // Due today
-        else score += Math.max(0, 24 * 7 / hoursLeft); // Weight by time
-      }
-      return score;
-    };
-    return getPanicValue(b) - getPanicValue(a);
-  });
+  return [...state.tasks].sort((a, b) => getPanicValue(b) - getPanicValue(a));
 });
 
 export const overdueTasks = computed(() => {
