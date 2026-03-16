@@ -20,6 +20,10 @@ pnpm tauri build # 构建生产版本可执行文件
 # 生产构建的 .exe 位于 src-tauri/target/release/
 ```
 
+## 测试说明
+
+如果需要测试时，我会启动 `pnpm tauri dev`，你自己不需要执行这个指令。
+
 ## 架构
 
 ### 前端 (Vue 3 + TypeScript)
