@@ -301,14 +301,16 @@ function toggleDarkMode() {
       </div>
       <!-- Custom Title Bar -->
       <div
-        class="fixed top-0 left-0 right-0 h-8 flex items-center justify-between px-4 z-[9999] select-none"
+        class="fixed top-0 left-0 right-0 h-8 flex items-center justify-between px-4 z-[9999] select-none transition-all duration-300"
         :class="[
           isDarkMode
-            ? 'bg-black/60 border-white/10'
-            : 'bg-[#cfc9b5] border-black/10',
+            ? 'bg-black/90 border-white/10'
+            : 'bg-[#cfc9b5]/90 border-black/10',
           { 'pointer-events-auto': isIgnoringCursorEvents },
         ]"
-        :style="isIgnoringCursorEvents ? 'pointer-events: auto;' : ''"
+        :style="isIgnoringCursorEvents
+          ? 'pointer-events: auto; backdrop-filter: none;'
+          : ''"
       >
         <!-- 双击标题栏退出穿透模式 -->
         <div
@@ -370,6 +372,13 @@ function toggleDarkMode() {
         </div>
 
         <div class="flex items-center gap-1 relative z-10">
+          <!-- 穿透模式提示 -->
+          <span
+            v-if="isIgnoringCursorEvents"
+            class="text-xs text-rose-400 font-medium mr-2 animate-pulse"
+          >
+            按 Esc 或 Ctrl+Shift+X 退出
+          </span>
           <!-- 深色/浅色模式切换 -->
           <button
             @click="toggleDarkMode"
