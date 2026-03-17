@@ -95,15 +95,23 @@ const selectedDate = ref(new Date().toISOString().split("T")[0]);
 
 const taskStats = computed(() => {
   let completed = 0,
-    pending = 0;
+    pending = 0,
+    overdue = 0;
+  const now = new Date();
   for (const task of state.tasks) {
     if (task.status === "completed") completed++;
-    else if (task.status === "pending") pending++;
+    else if (task.status === "pending") {
+      pending++;
+      if (task.deadline && new Date(task.deadline) < now) {
+        overdue++;
+      }
+    }
   }
   return {
     total: state.tasks.length,
     completed,
     pending,
+    overdue,
   };
 });
 
@@ -201,12 +209,6 @@ async function toggleComplete(task: Task) {
 
 async function deleteTask(id: number) {
   await actions.deleteTask(id);
-}
-
-async function snoozeTask(task: Task, days: number) {
-  const new截止日期 = new Date();
-  new截止日期.setDate(new截止日期.getDate() + days);
-  await actions.snoozeOverdueTask(task.id, new截止日期.toISOString());
 }
 
 async function toggleAlwaysOnTop() {
