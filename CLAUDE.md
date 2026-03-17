@@ -28,7 +28,7 @@ pnpm tauri build # 构建生产版本可执行文件
 
 ### 前端 (Vue 3 + TypeScript)
 - **入口**: `src/main.ts` - 初始化 Vue 应用和 SQLite 数据库
-- **主界面**: `src/App.vue` - 单页应用，包含所有组件；使用 Tailwind CSS 实现毛玻璃风格
+- **主界面**: `src/App.vue` - 单页应用，包含所有组件；使用 Tailwind CSS 
 - **状态管理**: `src/store.ts` - Vue reactive 状态，包含 CRUD 操作和"恐慌值"排序算法
 - **数据库**: `src/db.ts` - 通过 `@tauri-apps/plugin-sql` 操作 SQLite；Task 接口包含 parent_id 支持子任务
 - **通知**: `src/notification.ts` - 每 5 分钟检查即将到期的任务并发送系统通知

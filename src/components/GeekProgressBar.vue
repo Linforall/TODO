@@ -109,7 +109,7 @@ const percentage = computed(() => {
   height: 100%;
   background: #000;
   border-radius: 2px;
-  transition: width 0.4s ease-out;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   min-width: 0;
 }
 
