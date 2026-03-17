@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { unregister } from "@tauri-apps/plugin-global-shortcut";
-import { state, actions, smartSortedTasks, overdueTasks } from "./store";
+import { state, actions, smartSortedTasks } from "./store";
 import type { Task } from "./db";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -104,7 +104,6 @@ const taskStats = computed(() => {
     total: state.tasks.length,
     completed,
     pending,
-    overdue: overdueTasks.value.length,
   };
 });
 
@@ -181,7 +180,7 @@ async function addTask() {
       parent_id: null,
       reminder_at: null,
     });
-    resetAddTaskForm();
+    closeAddTaskModal();
   }
 }
 
@@ -623,17 +622,35 @@ function toggleDarkMode() {
                 >
                 <div
                   v-if="task.description"
-                  class="text-xs mt-0.5 line-clamp-1"
+                  class="text-xs mt-0.5 truncate"
                   :class="isDarkMode ? 'text-white/50' : 'text-gray-500'"
                 >
                   {{ task.description }}
                 </div>
               </div>
+              <!-- 编辑按钮 -->
+              <div class="w-8 flex-shrink-0 flex justify-end self-center">
+                <button
+                  @click="openEditModal(task)"
+                  class="p-1.5 transition-opacity opacity-60 hover:opacity-100"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    :class="isDarkMode ? 'text-white/40' : 'text-black/50'"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              </div>
               <!-- 删除按钮 -->
               <div class="w-8 flex-shrink-0 mr-4 flex justify-end self-center">
                 <button
                   @click="deleteTask(task.id)"
-                  class="p-1.5 transition-colors opacity-0 hover:opacity-100"
+                  class="p-1.5 transition-opacity opacity-60 hover:opacity-100"
                 >
                   <svg
                     class="w-4 h-4"
@@ -700,18 +717,36 @@ function toggleDarkMode() {
                   >
                   <div
                     v-if="task.description"
-                    class="text-xs mt-0.5 line-clamp-1"
+                    class="text-xs mt-0.5 truncate"
                     :class="isDarkMode ? 'text-white/20' : 'text-black/30'"
                   >
                     {{ task.description }}
                   </div>
+                </div>
+                <!-- 编辑按钮 -->
+                <div class="w-8 flex-shrink-0 flex justify-end self-center">
+                  <button
+                    @click="openEditModal(task)"
+                    class="p-1.5 transition-opacity opacity-60 hover:opacity-100"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      :class="isDarkMode ? 'text-white/30' : 'text-black/50'"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
                 </div>
                 <div
                   class="w-8 flex-shrink-0 mr-4 flex justify-end self-center"
                 >
                   <button
                     @click="deleteTask(task.id)"
-                    class="p-1.5 transition-colors opacity-0 hover:opacity-100"
+                    class="p-1.5 transition-opacity opacity-60 hover:opacity-100"
                   >
                     <svg
                       class="w-4 h-4"
@@ -732,123 +767,41 @@ function toggleDarkMode() {
           </div>
         </div>
 
-        <!-- 逾期任务（在笔记本边框外单独显示） -->
-        <div v-if="overdueTasks.length > 0" class="mx-2 mt-4">
-          <h2
-            class="text-lg font-semibold mb-2"
-            :class="isDarkMode ? 'text-red-400' : 'text-[#e84a1b]'"
-          >
-            逾期任务
-          </h2>
-          <div class="border-l border-black pl-4 w-full box-border">
-            <div
-              v-for="task in overdueTasks"
-              :key="task.id"
-              class="flex items-center w-full p-3 border-b border-black/20 box-border"
-              :class="isDarkMode ? 'border-white/10' : ''"
-            >
-              <div class="flex items-center gap-3 flex-1 min-w-0 w-full">
-                <input
-                  type="checkbox"
-                  :checked="task.status === 'completed'"
-                  @change="toggleComplete(task)"
-                  class="w-5 h-5 rounded-none cursor-pointer border-2 bg-transparent flex-shrink-0"
-                  :class="isDarkMode ? 'border-white' : 'border-black'"
-                />
-                <div class="flex-1 min-w-0">
-                  <span
-                    class="font-medium uppercase truncate block"
-                    :class="isDarkMode ? 'text-white' : 'text-black'"
-                    >{{ task.title }}</span
-                  >
-                  <p
-                    class="text-xs"
-                    :class="isDarkMode ? 'text-rose-400' : 'text-[#e84a1b]'"
-                  >
-                    截止：{{ new Date(task.deadline!).toLocaleString() }}
-                  </p>
-                  <p
-                    v-if="task.description"
-                    class="text-xs mt-1 line-clamp-2"
-                    :class="isDarkMode ? 'text-white/50' : 'text-gray-500'"
-                  >
-                    {{ task.description }}
-                  </p>
-                </div>
-              </div>
-              <div class="flex items-center space-x-2 ml-3 flex-shrink-0">
-                <button
-                  @click="snoozeTask(task, 1)"
-                  class="px-3 py-1.5 text-xs font-medium border transition-colors whitespace-nowrap"
-                  :class="
-                    isDarkMode
-                      ? 'border-white/50 text-white hover:bg-white hover:text-black'
-                      : 'border-black text-black hover:bg-black hover:text-white'
-                  "
-                >
-                  延后1天
-                </button>
-                <button
-                  @click="snoozeTask(task, 7)"
-                  class="px-3 py-1.5 text-xs font-medium border transition-colors whitespace-nowrap"
-                  :class="
-                    isDarkMode
-                      ? 'border-white/50 text-white hover:bg-white hover:text-black'
-                      : 'border-black text-black hover:bg-black hover:text-white'
-                  "
-                >
-                  延后7天
-                </button>
-                <button
-                  @click="deleteTask(task.id)"
-                  class="p-1.5 rounded-lg transition-colors flex-shrink-0"
-                  :class="
-                    isDarkMode
-                      ? 'text-rose-400 hover:bg-rose-900/50'
-                      : 'text-[#e84a1b] hover:bg-rose-100'
-                  "
-                >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fill-rule="evenodd"
-                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm1 3a1 1 0 100 2h4a1 1 0 100-2H8z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Edit Modal -->
       <div
         v-if="isEditModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-xl"
         @click.self="closeEditModal"
       >
         <div
-          class="w-full max-w-md border border-black"
-          :class="isDarkMode ? 'bg-slate-900/95' : 'bg-[#cfc9b5]'"
+          class="w-full max-w-sm rounded-xl shadow-xl border overflow-hidden"
+          :class="
+            isDarkMode
+              ? 'bg-slate-900/80 border-white/10 shadow-black/50'
+              : 'bg-[#cfc9b5]/80 border-black/10 shadow-black/20'
+          "
         >
           <!-- 标题栏 -->
           <div
-            class="flex items-center justify-between p-4 border-b border-black"
+            class="flex items-center justify-between p-4 border-b"
+            :class="isDarkMode ? 'border-white/10' : 'border-black/10'"
           >
             <h2
-              class="text-lg font-semibold uppercase"
+              class="text-lg font-semibold"
               :class="isDarkMode ? 'text-white' : 'text-black'"
             >
               编辑任务
             </h2>
             <button
               @click="closeEditModal"
-              class="p-1 hover:bg-black/10 transition-colors"
+              class="p-1.5 rounded-lg transition-colors"
+              :class="isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/10'"
             >
               <svg
                 class="w-5 h-5"
-                :class="isDarkMode ? 'text-white' : 'text-black'"
+                :class="isDarkMode ? 'text-white/70' : 'text-black/70'"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -866,63 +819,65 @@ function toggleDarkMode() {
           <form @submit.prevent="saveEdit" class="p-4">
             <div class="mb-4">
               <label
-                class="block text-sm mb-1.5 uppercase font-medium"
-                :class="isDarkMode ? 'text-white/80' : 'text-black'"
+                class="block text-sm font-medium mb-1.5"
+                :class="isDarkMode ? 'text-white/70' : 'text-black/70'"
                 >标题</label
               >
               <input
                 v-model="editTitle"
-                class="w-full px-4 py-2.5 border border-black transition-all uppercase"
+                placeholder="输入任务标题..."
+                class="w-full px-3 py-2 rounded-lg transition-all outline-none"
                 :class="
                   isDarkMode
-                    ? 'bg-black/30 text-white placeholder-white/40'
-                    : 'bg-white/50 text-black placeholder-black/40'
+                    ? 'bg-white/5 border border-white/10 text-white placeholder-white/30 focus:border-white/30 focus:bg-white/10 focus:ring-2 focus:ring-white/20'
+                    : 'bg-white/40 border border-black/10 text-black placeholder-black/40 focus:border-black/30 focus:bg-white/60 focus:ring-2 focus:ring-black/20'
                 "
                 required
               />
             </div>
             <div class="mb-4">
               <label
-                class="block text-sm mb-1.5 uppercase font-medium"
-                :class="isDarkMode ? 'text-white/80' : 'text-black'"
-                >描述</label
+                class="block text-sm font-medium mb-1.5"
+                :class="isDarkMode ? 'text-white/70' : 'text-black/70'"
+                >描述（可选）</label
               >
               <textarea
                 v-model="edit描述"
+                placeholder="添加描述..."
                 rows="2"
-                class="w-full px-4 py-2.5 border border-black transition-all resize-none uppercase"
+                class="w-full px-3 py-2 rounded-lg transition-all outline-none resize-none"
                 :class="
                   isDarkMode
-                    ? 'bg-black/30 text-white placeholder-white/40'
-                    : 'bg-white/50 text-black placeholder-black/40'
+                    ? 'bg-white/5 border border-white/10 text-white placeholder-white/30 focus:border-white/30 focus:bg-white/10 focus:ring-2 focus:ring-white/20'
+                    : 'bg-white/40 border border-black/10 text-black placeholder-black/40 focus:border-black/30 focus:bg-white/60 focus:ring-2 focus:ring-black/20'
                 "
               ></textarea>
             </div>
-            <div class="mb-5">
+            <div class="mb-4">
               <label
-                class="block text-sm mb-1.5 uppercase font-medium"
-                :class="isDarkMode ? 'text-white/80' : 'text-black'"
+                class="block text-sm font-medium mb-1.5"
+                :class="isDarkMode ? 'text-white/70' : 'text-black/70'"
                 >截止日期</label
               >
               <input
                 type="datetime-local"
                 v-model="edit截止日期"
-                class="w-full px-4 py-2.5 border border-black transition-all"
+                class="w-full px-3 py-2 rounded-lg transition-all outline-none"
                 :class="
                   isDarkMode
-                    ? 'bg-black/30 text-white'
-                    : 'bg-white/50 text-black'
+                    ? 'bg-white/5 border border-white/10 text-white focus:border-white/30 focus:bg-white/10 focus:ring-2 focus:ring-white/20'
+                    : 'bg-white/40 border border-black/10 text-black focus:border-black/30 focus:bg-white/60 focus:ring-2 focus:ring-black/20'
                 "
               />
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-2">
               <button
                 type="submit"
-                class="flex-1 px-4 py-2.5 font-medium transition-all border border-black uppercase"
+                class="flex-1 px-4 py-2 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 :class="
                   isDarkMode
-                    ? 'bg-white text-black hover:bg-white/80'
-                    : 'bg-black text-[#cfc9b5] hover:bg-black/80'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/20'
+                    : 'bg-gradient-to-r from-slate-700 to-slate-800 text-white hover:from-slate-600 hover:to-slate-700 shadow-lg shadow-black/20'
                 "
               >
                 保存修改
@@ -930,11 +885,11 @@ function toggleDarkMode() {
               <button
                 type="button"
                 @click="closeEditModal"
-                class="flex-1 px-4 py-2.5 font-medium transition-all border border-black uppercase"
+                class="flex-1 px-4 py-2 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 :class="
                   isDarkMode
-                    ? 'text-white hover:bg-white/10'
-                    : 'text-black hover:bg-black/5'
+                    ? 'bg-white/10 text-white border border-white/10 hover:bg-white/20'
+                    : 'bg-black/10 text-black border border-black/10 hover:bg-black/20'
                 "
               >
                 取消
