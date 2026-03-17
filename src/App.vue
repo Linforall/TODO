@@ -14,6 +14,23 @@ const newTaskTitle = ref("");
 const newTask描述 = ref("");
 const newTask截止日期 = ref<string | null>(null);
 
+// 获取当前日期时间字符串 (格式: YYYY-MM-DDTHH:mm)
+function getCurrentDateTimeString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+// 打开添加任务模态框并设置默认日期
+function openAddTaskModal() {
+  newTask截止日期.value = getCurrentDateTimeString();
+  isAddTaskModalOpen.value = true;
+}
+
 const isEditModalOpen = ref(false);
 const isAddTaskModalOpen = ref(false);
 const editingTask = ref<Task | null>(null);
@@ -296,7 +313,7 @@ function toggleDarkMode() {
         <span
           class="text-[10px] uppercase tracking-[0.5px] font-medium"
           :class="isDarkMode ? 'text-white/60' : 'text-black/60'"
-          >SYSTEM 01</span
+          >BY ANONYMOUS</span
         >
       </div>
       <!-- Custom Title Bar -->
@@ -515,7 +532,7 @@ function toggleDarkMode() {
             <input
               type="text"
               v-model="newTaskTitle"
-              @keyup.enter="isAddTaskModalOpen = true"
+              @keyup.enter="openAddTaskModal()"
               placeholder="Enter new task..."
               class="flex-1 bg-transparent border-none p-4 text-base font-medium uppercase focus:outline-none"
               :class="
@@ -525,7 +542,7 @@ function toggleDarkMode() {
               "
             />
             <button
-              @click="isAddTaskModalOpen = true"
+              @click="openAddTaskModal()"
               class="w-[60px] flex-shrink-0 flex items-center justify-center border-l border-black text-2xl transition-colors"
               :class="
                 isDarkMode
@@ -1215,5 +1232,10 @@ button:focus {
   100% {
     background-color: transparent;
   }
+}
+
+/* 深色模式下日期选择器日历图标 */
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }
 </style>
