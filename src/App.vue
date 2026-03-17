@@ -308,9 +308,11 @@ function toggleDarkMode() {
             : 'bg-[#cfc9b5]/90 border-black/10',
           { 'pointer-events-auto': isIgnoringCursorEvents },
         ]"
-        :style="isIgnoringCursorEvents
-          ? 'pointer-events: auto; backdrop-filter: none;'
-          : ''"
+        :style="
+          isIgnoringCursorEvents
+            ? 'pointer-events: auto; backdrop-filter: none;'
+            : ''
+        "
       >
         <!-- 双击标题栏退出穿透模式 -->
         <div
@@ -382,7 +384,7 @@ function toggleDarkMode() {
           <!-- 深色/浅色模式切换 -->
           <button
             @click="toggleDarkMode"
-            class="w-7 h-7 flex items-center justify-center rounded-md transition-all duration-200 hover:scale-110"
+            class="w-7 h-7 flex items-center justify-center rounded-md btn-spring hover:scale-110 hover:-translate-y-0.5 hover:shadow-lg"
             :class="isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5'"
             @mouseenter="
               showTooltip($event, isDarkMode ? '浅色模式' : '深色模式')
@@ -419,7 +421,7 @@ function toggleDarkMode() {
           <!-- 置顶功能 -->
           <button
             @click="toggleAlwaysOnTop"
-            class="w-7 h-7 flex items-center justify-center rounded-md transition-all duration-200 hover:scale-110"
+            class="w-7 h-7 flex items-center justify-center rounded-md btn-spring hover:scale-110 hover:-translate-y-0.5 hover:shadow-lg"
             :class="[
               isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5',
               isAlwaysOnTop
@@ -444,7 +446,7 @@ function toggleDarkMode() {
           <!-- 鼠标穿透功能 -->
           <button
             @click="toggleIgnoreCursorEvents"
-            class="w-7 h-7 flex items-center justify-center rounded-md transition-all duration-200 hover:scale-110"
+            class="w-7 h-7 flex items-center justify-center rounded-md btn-spring hover:scale-110 hover:-translate-y-0.5 hover:shadow-lg"
             :class="[
               isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/5',
               isIgnoringCursorEvents
@@ -544,7 +546,7 @@ function toggleDarkMode() {
             加载中...
           </div>
           <div v-else-if="displayedTasks.length === 0"></div>
-          <div v-else>
+          <TransitionGroup v-else name="task-slide" tag="div" class="relative">
             <div
               v-for="task in displayedTasks"
               :key="task.id"
@@ -561,7 +563,7 @@ function toggleDarkMode() {
                   class="absolute opacity-0 cursor-pointer h-0 w-0"
                 />
                 <span
-                  class="absolute top-0 left-0 w-5 h-5 border-[1.5px] rounded-sm transition-all"
+                  class="absolute top-0 left-0 w-5 h-5 border-[1.5px] rounded-sm checkbox-animate"
                   :class="[
                     task.status === 'completed'
                       ? isDarkMode
@@ -631,11 +633,11 @@ function toggleDarkMode() {
                 </button>
               </div>
             </div>
-          </div>
+          </TransitionGroup>
 
           <!-- 已完成任务 -->
           <div v-if="completedTasks.length > 0">
-            <div>
+            <TransitionGroup name="task-slide" tag="div" class="relative">
               <div
                 v-for="task in completedTasks"
                 :key="task.id"
@@ -652,7 +654,7 @@ function toggleDarkMode() {
                     class="absolute opacity-0 cursor-pointer h-0 w-0"
                   />
                   <span
-                    class="absolute top-0 left-0 w-5 h-5 border-[1.5px] rounded-sm transition-all"
+                    class="absolute top-0 left-0 w-5 h-5 border-[1.5px] rounded-sm checkbox-animate"
                     :class="isDarkMode ? 'border-white/50' : 'border-black'"
                   ></span>
                   <!-- 勾选图标 - 手绘风格 -->
@@ -709,7 +711,7 @@ function toggleDarkMode() {
                   </button>
                 </div>
               </div>
-            </div>
+            </TransitionGroup>
           </div>
         </div>
 
@@ -928,30 +930,36 @@ function toggleDarkMode() {
       <!-- Add Task Modal -->
       <div
         v-if="isAddTaskModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-xl"
         @click.self="closeAddTaskModal"
       >
         <div
-          class="w-full max-w-md border border-black"
-          :class="isDarkMode ? 'bg-slate-900/95' : 'bg-[#cfc9b5]'"
+          class="w-full max-w-sm rounded-xl shadow-xl border overflow-hidden"
+          :class="
+            isDarkMode
+              ? 'bg-slate-900/80 border-white/10 shadow-black/50'
+              : 'bg-[#cfc9b5]/80 border-black/10 shadow-black/20'
+          "
         >
           <!-- 标题栏 -->
           <div
-            class="flex items-center justify-between p-4 border-b border-black"
+            class="flex items-center justify-between p-4 border-b"
+            :class="isDarkMode ? 'border-white/10' : 'border-black/10'"
           >
             <h2
-              class="text-lg font-semibold uppercase"
+              class="text-lg font-semibold"
               :class="isDarkMode ? 'text-white' : 'text-black'"
             >
               添加新任务
             </h2>
             <button
               @click="closeAddTaskModal"
-              class="p-1 hover:bg-black/10 transition-colors"
+              class="p-1.5 rounded-lg transition-colors"
+              :class="isDarkMode ? 'hover:bg-white/10' : 'hover:bg-black/10'"
             >
               <svg
                 class="w-5 h-5"
-                :class="isDarkMode ? 'text-white' : 'text-black'"
+                :class="isDarkMode ? 'text-white/70' : 'text-black/70'"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -966,72 +974,68 @@ function toggleDarkMode() {
             </button>
           </div>
           <!-- 表单内容 -->
-          <form
-            @submit.prevent="addTask"
-            class="p-4"
-            :class="isDarkMode ? 'bg-slate-800/30' : 'bg-white/30'"
-          >
+          <form @submit.prevent="addTask" class="p-4">
             <div class="mb-4">
               <label
-                class="block text-sm mb-1.5 uppercase font-medium"
-                :class="isDarkMode ? 'text-white/80' : 'text-black'"
+                class="block text-sm font-medium mb-1.5"
+                :class="isDarkMode ? 'text-white/70' : 'text-black/70'"
                 >标题</label
               >
               <input
                 v-model="newTaskTitle"
                 placeholder="输入任务标题..."
-                class="w-full px-4 py-2.5 border border-black transition-all uppercase"
+                class="w-full px-3 py-2 rounded-lg transition-all outline-none"
                 :class="
                   isDarkMode
-                    ? 'bg-black/30 text-white placeholder-white/40'
-                    : 'bg-white/50 text-black placeholder-black/40'
+                    ? 'bg-white/5 border border-white/10 text-white placeholder-white/30 focus:border-white/30 focus:bg-white/10 focus:ring-2 focus:ring-white/20'
+                    : 'bg-white/40 border border-black/10 text-black placeholder-black/40 focus:border-black/30 focus:bg-white/60 focus:ring-2 focus:ring-black/20'
                 "
                 required
               />
             </div>
             <div class="mb-4">
               <label
-                class="block text-sm mb-1.5 uppercase font-medium"
-                :class="isDarkMode ? 'text-white/80' : 'text-black'"
+                class="block text-sm font-medium mb-1.5"
+                :class="isDarkMode ? 'text-white/70' : 'text-black/70'"
                 >描述（可选）</label
               >
               <textarea
                 v-model="newTask描述"
                 placeholder="添加描述..."
                 rows="2"
-                class="w-full px-4 py-2.5 border border-black transition-all resize-none uppercase"
+                class="w-full px-3 py-2 rounded-lg transition-all outline-none resize-none"
                 :class="
                   isDarkMode
-                    ? 'bg-black/30 text-white placeholder-white/40'
-                    : 'bg-white/50 text-black placeholder-black/40'
+                    ? 'bg-white/5 border border-white/10 text-white placeholder-white/30 focus:border-white/30 focus:bg-white/10 focus:ring-2 focus:ring-white/20'
+                    : 'bg-white/40 border border-black/10 text-black placeholder-black/40 focus:border-black/30 focus:bg-white/60 focus:ring-2 focus:ring-black/20'
                 "
               ></textarea>
             </div>
-            <div class="mb-5">
+            <div class="mb-4">
               <label
-                class="block text-sm mb-1.5 uppercase font-medium"
-                :class="isDarkMode ? 'text-white/80' : 'text-black'"
+                class="block text-sm font-medium mb-1.5"
+                :class="isDarkMode ? 'text-white/70' : 'text-black/70'"
                 >截止日期</label
               >
               <input
                 type="datetime-local"
                 v-model="newTask截止日期"
-                class="w-full px-4 py-2.5 border border-black transition-all"
+                class="w-full px-3 py-2 rounded-lg transition-all outline-none"
                 :class="
                   isDarkMode
-                    ? 'bg-black/30 text-white'
-                    : 'bg-white/50 text-black'
+                    ? 'bg-white/5 border border-white/10 text-white focus:border-white/30 focus:bg-white/10 focus:ring-2 focus:ring-white/20'
+                    : 'bg-white/40 border border-black/10 text-black focus:border-black/30 focus:bg-white/60 focus:ring-2 focus:ring-black/20'
                 "
               />
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-2">
               <button
                 type="submit"
-                class="flex-1 px-4 py-2.5 font-medium transition-all border border-black uppercase"
+                class="flex-1 px-4 py-2 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 :class="
                   isDarkMode
-                    ? 'bg-white text-black hover:bg-white/80'
-                    : 'bg-black text-[#cfc9b5] hover:bg-black/80'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/20'
+                    : 'bg-gradient-to-r from-slate-700 to-slate-800 text-white hover:from-slate-600 hover:to-slate-700 shadow-lg shadow-black/20'
                 "
               >
                 添加任务
@@ -1039,11 +1043,11 @@ function toggleDarkMode() {
               <button
                 type="button"
                 @click="closeAddTaskModal"
-                class="flex-1 px-4 py-2.5 font-medium transition-all border border-black uppercase"
+                class="flex-1 px-4 py-2 font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 :class="
                   isDarkMode
-                    ? 'text-white hover:bg-white/10'
-                    : 'text-black hover:bg-black/5'
+                    ? 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'
+                    : 'bg-black/5 text-black/70 hover:bg-black/10 border border-black/10'
                 "
               >
                 取消
@@ -1117,10 +1121,99 @@ button:focus {
   outline: none;
 }
 
-/* Smooth transitions */
-* {
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+/* Smooth transitions - 基础交互元素 */
+.interactive {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* 按钮和可点击元素的弹性过渡 */
+.btn-spring {
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease;
+}
+
+/* Task list transition animations - 流畅列表动画 */
+.task-slide-move {
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 进入动画 - 从右侧滑入带弹性 */
+.task-slide-enter-from {
+  opacity: 0;
+  transform: translateX(60px);
+}
+
+.task-slide-enter-to {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.task-slide-enter-active {
+  transition:
+    opacity 0.35s ease-out,
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 离开动画 - 淡出向左滑出 */
+.task-slide-leave-from {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.task-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-30px) scale(0.95);
+}
+
+.task-slide-leave-active {
+  transition:
+    opacity 0.3s ease-in,
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+  width: 100%;
+  z-index: 0;
+}
+
+/* 复选框动画 */
+.checkbox-animate {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.checkbox-animate:checked {
+  animation: check-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes check-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 任务完成时的动画 */
+.task-complete {
+  animation: task-complete-flash 0.4s ease-out;
+}
+
+@keyframes task-complete-flash {
+  0% {
+    background-color: transparent;
+  }
+  30% {
+    background-color: rgba(34, 197, 94, 0.15);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 </style>
